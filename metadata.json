@@ -1,0 +1,5 @@
+{
+  "name": "ERSV MAP",
+  "description": "Visualize surveillance cameras across Algiers on an interactive map, check their operational status, and provide detailed information.",
+  "requestFramePermissions": []
+}
