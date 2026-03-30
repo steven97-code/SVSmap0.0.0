@@ -14,8 +14,23 @@ db.exec(`
     lat REAL NOT NULL,
     lng REAL NOT NULL,
     created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-  )
+  );
+
+  CREATE TABLE IF NOT EXISTS users (
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    username TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT NOT NULL CHECK(role IN ('admin', 'user')),
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+  );
 `);
+
+// Delete the old hardcoded admin so the user can register manually
+try {
+  db.prepare("DELETE FROM users WHERE username = 'admin' AND password = 'admin 123'").run();
+} catch (e) {
+  // Ignore if table doesn't exist or error occurs
+}
 
 // Insert some dummy data if empty
 const count = db.prepare('SELECT COUNT(*) as count FROM cameras').get() as { count: number };

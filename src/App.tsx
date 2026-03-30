@@ -3,18 +3,29 @@ import { Header } from './components/Header';
 import { Sidebar } from './components/Sidebar';
 import { MapView } from './components/MapView';
 import { AddCameraModal } from './components/AddCameraModal';
+import { Login } from './components/Login';
+import { UserManagement } from './components/UserManagement';
+import { LoginAnimation } from './components/LoginAnimation';
 import { Camera, NewCamera } from './types';
 
 export default function App() {
+  const [currentUser, setCurrentUser] = useState<any>(null);
   const [cameras, setCameras] = useState<Camera[]>([]);
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [isUserManagementOpen, setIsUserManagementOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'online' | 'offline' | 'unknown'>('all');
   const [selectedCameraId, setSelectedCameraId] = useState<number | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [isAnimating, setIsAnimating] = useState(false);
 
-  // Fetch cameras on mount
+  // Check for saved user on mount
   useEffect(() => {
+    const savedUser = localStorage.getItem('ersv_user');
+    if (savedUser) {
+      setCurrentUser(JSON.parse(savedUser));
+      setIsAnimating(true);
+    }
     fetchCameras();
   }, []);
 
@@ -32,12 +43,25 @@ export default function App() {
     }
   };
 
+  const handleLogin = (user: any) => {
+    setCurrentUser(user);
+    localStorage.setItem('ersv_user', JSON.stringify(user));
+    setIsAnimating(true);
+  };
+
+  const handleLogout = () => {
+    setCurrentUser(null);
+    localStorage.removeItem('ersv_user');
+  };
+
   const handleAddCamera = async (newCamera: NewCamera) => {
+    if (!currentUser || currentUser.role !== 'admin') return;
+    
     try {
       const response = await fetch('/api/cameras', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(newCamera),
+        body: JSON.stringify({ ...newCamera, adminId: currentUser.id }),
       });
       if (response.ok) {
         const addedCamera = await response.json();
@@ -49,11 +73,13 @@ export default function App() {
   };
 
   const handleUpdateStatus = async (id: number, status: 'online' | 'offline' | 'unknown', reason?: string) => {
+    if (!currentUser || currentUser.role !== 'admin') return;
+
     try {
       const response = await fetch(`/api/cameras/${id}/status`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ status, offline_reason: reason }),
+        body: JSON.stringify({ status, offline_reason: reason, adminId: currentUser.id }),
       });
       if (response.ok) {
         const updatedCamera = await response.json();
@@ -65,8 +91,10 @@ export default function App() {
   };
 
   const handleDeleteCamera = async (id: number) => {
+    if (!currentUser || currentUser.role !== 'admin') return;
+
     try {
-      const response = await fetch(`/api/cameras/${id}`, { method: 'DELETE' });
+      const response = await fetch(`/api/cameras/${id}?adminId=${currentUser.id}`, { method: 'DELETE' });
       if (response.ok) {
         setCameras(cameras.filter(c => c.id !== id));
         if (selectedCameraId === id) setSelectedCameraId(null);
@@ -94,12 +122,23 @@ export default function App() {
     );
   }
 
+  if (!currentUser) {
+    return <Login onLogin={handleLogin} />;
+  }
+
+  if (isAnimating) {
+    return <LoginAnimation onComplete={() => setIsAnimating(false)} />;
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 text-slate-200 flex flex-col font-sans overflow-hidden">
       <Header 
         onAddClick={() => setIsAddModalOpen(true)} 
         searchTerm={searchTerm}
         onSearchChange={setSearchTerm}
+        currentUser={currentUser}
+        onLogout={handleLogout}
+        onManageUsers={() => setIsUserManagementOpen(true)}
       />
       
       <main className="flex flex-1 overflow-hidden relative">
@@ -117,6 +156,7 @@ export default function App() {
           onSelectCamera={setSelectedCameraId}
           onDeleteCamera={handleDeleteCamera}
           onUpdateStatus={handleUpdateStatus}
+          currentUser={currentUser}
         />
       </main>
 
@@ -124,6 +164,12 @@ export default function App() {
         isOpen={isAddModalOpen} 
         onClose={() => setIsAddModalOpen(false)} 
         onAdd={handleAddCamera} 
+      />
+
+      <UserManagement
+        isOpen={isUserManagementOpen}
+        onClose={() => setIsUserManagementOpen(false)}
+        currentUser={currentUser}
       />
     </div>
   );

@@ -1,5 +1,5 @@
 import React from 'react';
-import { Camera, Search, Plus, Activity } from 'lucide-react';
+import { Camera, Search, Plus, Activity, LogOut, Users } from 'lucide-react';
 import { Input } from './ui/input';
 import { Button } from './ui/button';
 
@@ -7,9 +7,12 @@ interface HeaderProps {
   onAddClick: () => void;
   searchTerm: string;
   onSearchChange: (term: string) => void;
+  currentUser: any;
+  onLogout: () => void;
+  onManageUsers: () => void;
 }
 
-export function Header({ onAddClick, searchTerm, onSearchChange }: HeaderProps) {
+export function Header({ onAddClick, searchTerm, onSearchChange, currentUser, onLogout, onManageUsers }: HeaderProps) {
   return (
     <header className="h-16 border-b border-cyan-900 bg-slate-950/80 backdrop-blur-md flex items-center justify-between px-6 sticky top-0 z-10">
       <div className="flex items-center gap-3">
@@ -37,10 +40,29 @@ export function Header({ onAddClick, searchTerm, onSearchChange }: HeaderProps) 
           <Activity className="w-4 h-4" />
           <span>System Active</span>
         </div>
-        <Button onClick={onAddClick} className="gap-2">
-          <Plus className="w-4 h-4" />
-          Add Camera
-        </Button>
+        
+        {currentUser?.role === 'admin' && (
+          <>
+            <Button variant="outline" onClick={onManageUsers} className="gap-2 border-cyan-800 text-cyan-400 hover:bg-cyan-950">
+              <Users className="w-4 h-4" />
+              Users
+            </Button>
+            <Button onClick={onAddClick} className="gap-2">
+              <Plus className="w-4 h-4" />
+              Add Camera
+            </Button>
+          </>
+        )}
+        
+        <div className="flex items-center gap-3 ml-2 pl-4 border-l border-slate-800">
+          <div className="text-sm">
+            <div className="text-slate-200 font-medium">{currentUser?.username}</div>
+            <div className="text-slate-500 text-xs capitalize">{currentUser?.role}</div>
+          </div>
+          <Button variant="ghost" size="icon" onClick={onLogout} className="text-slate-400 hover:text-red-400 hover:bg-red-950/30" title="Logout">
+            <LogOut className="w-4 h-4" />
+          </Button>
+        </div>
       </div>
     </header>
   );

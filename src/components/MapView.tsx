@@ -44,6 +44,7 @@ interface MapViewProps {
   onSelectCamera: (id: number) => void;
   onDeleteCamera: (id: number) => void;
   onUpdateStatus: (id: number, status: 'online' | 'offline' | 'unknown', reason?: string) => void;
+  currentUser: any;
 }
 
 // Component to handle map center changes
@@ -55,7 +56,7 @@ function MapController({ center, zoom }: { center: [number, number], zoom: numbe
   return null;
 }
 
-export function MapView({ cameras, selectedCameraId, onSelectCamera, onDeleteCamera, onUpdateStatus }: MapViewProps) {
+export function MapView({ cameras, selectedCameraId, onSelectCamera, onDeleteCamera, onUpdateStatus, currentUser }: MapViewProps) {
   // Default center: Algiers
   const defaultCenter: [number, number] = [36.7538, 3.0588];
   
@@ -65,6 +66,8 @@ export function MapView({ cameras, selectedCameraId, onSelectCamera, onDeleteCam
   const selectedCamera = cameras.find(c => c.id === selectedCameraId);
   const center = selectedCamera ? [selectedCamera.lat, selectedCamera.lng] as [number, number] : defaultCenter;
   const zoom = selectedCamera ? 15 : 12;
+
+  const isAdmin = currentUser?.role === 'admin';
 
   return (
     <div className="flex-1 relative bg-slate-900 h-[calc(100vh-4rem)] z-0">
@@ -159,41 +162,43 @@ export function MapView({ cameras, selectedCameraId, onSelectCamera, onDeleteCam
                   </div>
                 </div>
 
-                <div className="mt-4 pt-3 border-t border-cyan-900/50 flex justify-between items-center gap-2">
-                  <div className="flex gap-1">
+                {isAdmin && (
+                  <div className="mt-4 pt-3 border-t border-cyan-900/50 flex justify-between items-center gap-2">
+                    <div className="flex gap-1">
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-7 px-2 text-xs border-green-900 text-green-500 hover:bg-green-950"
+                        onClick={() => onUpdateStatus(camera.id, 'online')}
+                      >
+                        Set Online
+                      </Button>
+                      <Button 
+                        variant="outline" 
+                        size="sm" 
+                        className="h-7 px-2 text-xs border-red-900 text-red-500 hover:bg-red-950"
+                        onClick={() => {
+                          setOfflineReason('ERSV');
+                          setOfflineDialog({ isOpen: true, cameraId: camera.id });
+                        }}
+                      >
+                        Set Offline
+                      </Button>
+                    </div>
                     <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="h-7 px-2 text-xs border-green-900 text-green-500 hover:bg-green-950"
-                      onClick={() => onUpdateStatus(camera.id, 'online')}
-                    >
-                      Set Online
-                    </Button>
-                    <Button 
-                      variant="outline" 
-                      size="sm" 
-                      className="h-7 px-2 text-xs border-red-900 text-red-500 hover:bg-red-950"
+                      variant="ghost" 
+                      size="icon" 
+                      className="h-7 w-7 text-red-500 hover:text-red-400 hover:bg-red-950/50"
                       onClick={() => {
-                        setOfflineReason('ERSV');
-                        setOfflineDialog({ isOpen: true, cameraId: camera.id });
+                        if (confirm('Are you sure you want to delete this camera?')) {
+                          onDeleteCamera(camera.id);
+                        }
                       }}
                     >
-                      Set Offline
+                      <Trash2 className="w-4 h-4" />
                     </Button>
                   </div>
-                  <Button 
-                    variant="ghost" 
-                    size="icon" 
-                    className="h-7 w-7 text-red-500 hover:text-red-400 hover:bg-red-950/50"
-                    onClick={() => {
-                      if (confirm('Are you sure you want to delete this camera?')) {
-                        onDeleteCamera(camera.id);
-                      }
-                    }}
-                  >
-                    <Trash2 className="w-4 h-4" />
-                  </Button>
-                </div>
+                )}
               </div>
             </Popup>
           </Marker>
