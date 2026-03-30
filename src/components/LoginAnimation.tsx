@@ -25,6 +25,7 @@ export function LoginAnimation({ onComplete }: LoginAnimationProps) {
           src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Emblem_of_the_Ministry_of_National_Defence_%28Algeria%29.svg/1024px-Emblem_of_the_Ministry_of_National_Defence_%28Algeria%29.svg.png"
           alt="Ministry of National Defence - Algeria"
           className="w-48 h-48 md:w-64 md:h-64 object-contain drop-shadow-[0_0_30px_rgba(202,138,4,0.3)]"
+          referrerPolicy="no-referrer"
           animate={{ 
             rotateY: [0, 360],
           }}

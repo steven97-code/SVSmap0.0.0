@@ -57,8 +57,13 @@ export function Login({ onLogin }: LoginProps) {
     <div className="min-h-screen bg-slate-950 flex flex-col items-center justify-center p-4">
       <div className="w-full max-w-md bg-slate-900 rounded-xl border border-slate-800 shadow-2xl overflow-hidden">
         <div className="p-8 text-center border-b border-slate-800 bg-slate-900/50">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-cyan-950 text-cyan-400 mb-4">
-            <Camera size={32} />
+          <div className="inline-flex items-center justify-center w-24 h-24 mb-4">
+            <img 
+              src="https://upload.wikimedia.org/wikipedia/commons/thumb/5/5a/Emblem_of_the_Ministry_of_National_Defence_%28Algeria%29.svg/1024px-Emblem_of_the_Ministry_of_National_Defence_%28Algeria%29.svg.png" 
+              alt="Ministry of National Defence" 
+              className="w-full h-full object-contain drop-shadow-[0_0_15px_rgba(202,138,4,0.2)]"
+              referrerPolicy="no-referrer"
+            />
           </div>
           <h1 className="text-2xl font-bold text-slate-100">ERSV Map System</h1>
           <p className="text-slate-400 mt-2">
